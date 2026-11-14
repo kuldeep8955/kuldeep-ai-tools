@@ -4,10 +4,16 @@ from PIL import Image, ImageDraw, ImageFilter, ImageOps
 from moviepy import ImageClip, AudioFileClip, CompositeAudioClip, concatenate_videoclips
 import requests, urllib.parse, os
 
-st.set_page_config(page_title="Kuldeep AI Studio", layout="wide")
+st.set_page_config(page_title="Kuldeep AI Tools", layout="wide")
 st.title("Kuldeep AI - Smart Assistant & Video Studio (v4.0)")
 
-tool = st.sidebar.selectbox("Apna AI Tool Chunein:", ["1. Kuldeep AI Chat (Gemini Style)", "2. Auto-AI Video Maker", "3. AI Image Generator", "4. Hindi/English Voice Maker", "5. AI Photo Editor"])
+tool = st.sidebar.selectbox("Apna AI Tool Chunein:", [
+    "1. Kuldeep AI Chat (Gemini Style)",
+    "2. Auto-AI Video Maker",
+    "3. AI Image Generator",
+    "4. Hindi/English Voice Maker",
+    "5. AI Photo Editor"
+])
 
 def ask_free_ai(prompt):
     try:
@@ -16,7 +22,7 @@ def ask_free_ai(prompt):
         if res.status_code == 200:
             return res.text
         return "Server abhi vyast hai, kripya dobara koshish karein."
-    except Exception as e:
+    except Exception:
         return "Network error aaya hai, kripya dobara try karein."
 
 def add_caption(img, text):
@@ -45,10 +51,10 @@ if tool == "1. Kuldeep AI Chat (Gemini Style)":
 
 elif tool == "2. Auto-AI Video Maker":
     st.subheader("AI se Kahani Likhwakar Video Banayein")
-    topic = st.text_input("Kahani ka Topic likhein (Optional - AI khud script likhega):", "A brave lion and a little mouse in Hindi")
+    topic = st.text_input("Kahani ka Topic likhein:", "A brave lion and a little mouse in Hindi")
     if st.button("AI se Script Likhwaiye"):
         with st.spinner("AI script likh raha hai..."):
-            st.session_state.auto_script = ask_free_ai(f"Write a very short 4-sentence story about {topic}. End every sentence with a full stop.")
+            st.session_state.auto_script = ask_free_ai(f"Write a short 4-sentence story about {topic}. End every sentence with a full stop.")
     default_script = st.session_state.get("auto_script", "The sun is shining as Leo walks in the park. He finds a cute little brown puppy.")
     title = st.text_input("Video Title:", "Leo_Story")
     bhasha = st.selectbox("Bhasha:", ["hi", "en"])
@@ -65,14 +71,14 @@ elif tool == "2. Auto-AI Video Maker":
                 gTTS(line, lang=bhasha).save(af)
                 try:
                     clean_p = "".join(c for c in line if c.isalnum() or c == " ")[:80]
-                    url = f"https://pollinations.ai{urllib.parse.quote(clean_p + ", " + style)}?width=1280&height=720&nologo=true"
+                    url = f"https://pollinations.ai{urllib.parse.quote(clean_p + ', ' + style)}?width=1280&height=720&nologo=true"
                     resp = requests.get(url, timeout=15)
                     if resp.status_code == 200 and len(resp.content) > 1000:
                         open(imf, "wb").write(resp.content)
                         img = Image.open(imf).convert("RGB").resize((1280, 720))
                     else:
                         raise Exception("Fallback")
-                except:
+                except Exception:
                     img = Image.new("RGB", (1280, 720), color=rang[i % len(rang)])
                 if captions_on:
                     img = add_caption(img, line)
@@ -111,9 +117,12 @@ elif tool == "5. AI Photo Editor":
     w_text = st.text_input("Photo par likhne ke liye text:", "Kuldeep AI Tools")
     if up_img:
         im = Image.open(up_img).convert("RGB")
-        if effect == "Black & White": im = ImageOps.grayscale(im).convert("RGB")
-        elif effect == "Blur Effect": im = im.filter(ImageFilter.GaussianBlur(5))
-        if w_text: ImageDraw.Draw(im).text((30, 30), w_text, fill=(255, 255, 0))
+        if effect == "Black & White":
+            im = ImageOps.grayscale(im).convert("RGB")
+        elif effect == "Blur Effect":
+            im = im.filter(ImageFilter.GaussianBlur(5))
+        if w_text:
+            ImageDraw.Draw(im).text((30, 30), w_text, fill=(255, 255, 0))
         st.image(im, caption="Edited Photo", width=500)
         im.save("edited_photo.png")
         st.download_button("Download Edited Photo", open("edited_photo.png", "rb"), file_name="kuldeep_edited.png")
