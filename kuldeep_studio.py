@@ -7,20 +7,13 @@ import requests, urllib.parse, os
 st.set_page_config(page_title="Kuldeep AI Tools", layout="wide")
 st.title("Kuldeep AI - Smart Assistant & Video Studio (v4.0)")
 
-tool = st.sidebar.selectbox("Apna AI Tool Chunein:", [
-    "1. Kuldeep AI Chat (Gemini Style)",
-    "2. Auto-AI Video Maker",
-    "3. AI Image Generator",
-    "4. Hindi/English Voice Maker",
-    "5. AI Photo Editor"
-])
+tool = st.sidebar.selectbox("Apna AI Tool Chunein:", ["1. Kuldeep AI Chat (Gemini Style)", "2. Auto-AI Video Maker", "3. AI Image Generator", "4. Hindi/English Voice Maker", "5. AI Photo Editor"])
 
 def ask_free_ai(prompt):
     try:
         url = f"https://pollinations.ai{urllib.parse.quote(prompt)}"
         res = requests.get(url, timeout=20)
-        if res.status_code == 200:
-            return res.text
+        if res.status_code == 200: return res.text
         return "Server abhi vyast hai, kripya dobara koshish karein."
     except Exception:
         return "Network error aaya hai, kripya dobara try karein."
@@ -33,16 +26,13 @@ def add_caption(img, text):
 
 if tool == "1. Kuldeep AI Chat (Gemini Style)":
     st.subheader("Kuldeep AI se Kuch Bhi Puchein ya Kahani Likhwaiye")
-    if "messages" not in st.session_state:
-        st.session_state.messages = []
+    if "messages" not in st.session_state: st.session_state.messages = []
     for msg in st.session_state.messages:
-        with st.chat_message(msg["role"]):
-            st.markdown(msg["content"])
-    user_q = st.chat_input("Yahan apna sawal likhein (Jaise: Hindi mein ek kahani likho)...")
+        with st.chat_message(msg["role"]): st.markdown(msg["content"])
+    user_q = st.chat_input("Yahan apna sawal likhein...")
     if user_q:
         st.session_state.messages.append({"role": "user", "content": user_q})
-        with st.chat_message("user"):
-            st.markdown(user_q)
+        with st.chat_message("user"): st.markdown(user_q)
         with st.chat_message("assistant"):
             with st.spinner("Kuldeep AI soch raha hai..."):
                 ans = ask_free_ai(user_q)
@@ -71,17 +61,15 @@ elif tool == "2. Auto-AI Video Maker":
                 gTTS(line, lang=bhasha).save(af)
                 try:
                     clean_p = "".join(c for c in line if c.isalnum() or c == " ")[:80]
-                    url = f"https://pollinations.ai{urllib.parse.quote(clean_p + ', ' + style)}?width=1280&height=720&nologo=true"
+                    url = f"https://pollinations.ai{urllib.parse.quote(clean_p + ", " + style)}?width=1280&height=720&nologo=true"
                     resp = requests.get(url, timeout=15)
                     if resp.status_code == 200 and len(resp.content) > 1000:
                         open(imf, "wb").write(resp.content)
                         img = Image.open(imf).convert("RGB").resize((1280, 720))
-                    else:
-                        raise Exception("Fallback")
+                    else: raise Exception("Fallback")
                 except Exception:
                     img = Image.new("RGB", (1280, 720), color=rang[i % len(rang)])
-                if captions_on:
-                    img = add_caption(img, line)
+                if captions_on: img = add_caption(img, line)
                 img.save(imf)
                 aud = AudioFileClip(af)
                 clips.append(ImageClip(imf).with_duration(aud.duration).with_audio(aud))
@@ -117,12 +105,9 @@ elif tool == "5. AI Photo Editor":
     w_text = st.text_input("Photo par likhne ke liye text:", "Kuldeep AI Tools")
     if up_img:
         im = Image.open(up_img).convert("RGB")
-        if effect == "Black & White":
-            im = ImageOps.grayscale(im).convert("RGB")
-        elif effect == "Blur Effect":
-            im = im.filter(ImageFilter.GaussianBlur(5))
-        if w_text:
-            ImageDraw.Draw(im).text((30, 30), w_text, fill=(255, 255, 0))
+        if effect == "Black & White": im = ImageOps.grayscale(im).convert("RGB")
+        elif effect == "Blur Effect": im = im.filter(ImageFilter.GaussianBlur(5))
+        if w_text: ImageDraw.Draw(im).text((30, 30), w_text, fill=(255, 255, 0))
         st.image(im, caption="Edited Photo", width=500)
         im.save("edited_photo.png")
         st.download_button("Download Edited Photo", open("edited_photo.png", "rb"), file_name="kuldeep_edited.png")
