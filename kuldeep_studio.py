@@ -10,8 +10,7 @@ st.title("Kuldeep AI - Smart Assistant & Video Studio (v4.0)")
 tool = st.sidebar.selectbox("Apna AI Tool Chunein:", ["1. Kuldeep AI Chat (Gemini Style)", "2. Auto-AI Video Maker", "3. AI Image Generator", "4. Hindi/English Voice Maker", "5. AI Photo Editor"])
 
 def ask_free_ai(prompt):
-    headers = {"User-Agent": "Mozilla/5.0"}
-    # Tarika 1: POST API (Sabse tez aur reliable)
+    headers = {"User-Agent": "Mozilla/5.0", "Content-Type": "application/json"}
     try:
         res = requests.post(
             "https://pollinations.ai",
@@ -21,18 +20,10 @@ def ask_free_ai(prompt):
         )
         if res.status_code == 200 and len(res.text.strip()) > 0:
             return res.text
-    except Exception:
-        pass
-
-    # Tarika 2: Backup GET API
-    try:
-        url = f"https://pollinations.ai{urllib.parse.quote(prompt[:300])}"
-        res = requests.get(url, headers=headers, timeout=30)
-        if res.status_code == 200 and len(res.text.strip()) > 0:
-            return res.text
-        return f"Server Status: {res.status_code} - Kripya thodi der baad try karein."
+        return f"Server Status: {res.status_code} - Kripya dobara try karein."
     except Exception as e:
         return f"Connection Error: {str(e)}"
+
 
 def add_caption(img, text):
     draw = ImageDraw.Draw(img)
