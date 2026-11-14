@@ -11,20 +11,23 @@ tool = st.sidebar.selectbox("Apna AI Tool Chunein:", ["1. Kuldeep AI Chat (Gemin
 
 def ask_free_ai(prompt):
     headers = {"User-Agent": "Mozilla/5.0"}
-    # Tarika 1: Sahi slash (/) ke saath GET request
+    host_name = "text" + "." + "pollinations" + "." + "ai"
+    
+    # Tarika 1: Direct GET request
     try:
         safe_text = urllib.parse.quote(prompt[:400], safe="")
-        url = "https://pollinations.ai" + safe_text
-        res = requests.get(url, headers=headers, timeout=45)
+        full_url = "https://" + host_name + "/" + safe_text
+        res = requests.get(full_url, headers=headers, timeout=45)
         if res.status_code == 200 and len(res.text.strip()) > 0:
             return res.text
     except Exception:
         pass
 
-    # Tarika 2: OpenAI compatible endpoint
+    # Tarika 2: OpenAI style POST request
     try:
+        post_url = "https://" + host_name + "/" + "openai"
         res = requests.post(
-            "https://pollinations.aiopenai",
+            post_url,
             json={"messages": [{"role": "user", "content": prompt}], "model": "openai"},
             headers={"User-Agent": "Mozilla/5.0", "Content-Type": "application/json"},
             timeout=45
