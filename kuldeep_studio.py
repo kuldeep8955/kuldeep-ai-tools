@@ -10,20 +10,31 @@ st.title("Kuldeep AI - Smart Assistant & Video Studio (v4.0)")
 tool = st.sidebar.selectbox("Apna AI Tool Chunein:", ["1. Kuldeep AI Chat (Gemini Style)", "2. Auto-AI Video Maker", "3. AI Image Generator", "4. Hindi/English Voice Maker", "5. AI Photo Editor"])
 
 def ask_free_ai(prompt):
-    headers = {"User-Agent": "Mozilla/5.0", "Content-Type": "application/json"}
+    headers = {"User-Agent": "Mozilla/5.0"}
+    # Tarika 1: Sahi slash (/) ke saath GET request
     try:
-        res = requests.post(
-            "https://pollinations.ai",
-            json={"messages": [{"role": "user", "content": prompt}], "model": "openai"},
-            headers=headers,
-            timeout=45
-        )
+        safe_text = urllib.parse.quote(prompt[:400], safe="")
+        url = "https://pollinations.ai" + safe_text
+        res = requests.get(url, headers=headers, timeout=45)
         if res.status_code == 200 and len(res.text.strip()) > 0:
             return res.text
-        return f"Server Status: {res.status_code} - Kripya dobara try karein."
+    except Exception:
+        pass
+
+    # Tarika 2: OpenAI compatible endpoint
+    try:
+        res = requests.post(
+            "https://pollinations.aiopenai",
+            json={"messages": [{"role": "user", "content": prompt}], "model": "openai"},
+            headers={"User-Agent": "Mozilla/5.0", "Content-Type": "application/json"},
+            timeout=45
+        )
+        if res.status_code == 200:
+            data = res.json()
+            return data["choices"][0]["message"]["content"]
+        return f"Server Status: {res.status_code} - Kripya thodi der baad try karein."
     except Exception as e:
         return f"Connection Error: {str(e)}"
-
 
 def add_caption(img, text):
     draw = ImageDraw.Draw(img)
