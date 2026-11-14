@@ -1,29 +1,62 @@
 import streamlit as st
 from gtts import gTTS
-from PIL import Image, ImageDraw, ImageFilter, ImageEnhance
+from PIL import Image, ImageDraw, ImageFilter, ImageOps
 from moviepy import ImageClip, AudioFileClip, CompositeAudioClip, concatenate_videoclips
 import requests, urllib.parse, os
 
-st.set_page_config(page_title="Kuldeep AI Tools", layout="wide")
-st.title("Kuldeep AI Master Studio (Pro 3.0)")
+st.set_page_config(page_title="Kuldeep AI Studio", layout="wide")
+st.title("Kuldeep AI - Smart Assistant & Video Studio (v4.0)")
 
-tool = st.sidebar.selectbox("Apna AI Tool Chunein:", ["1. Auto-AI Video Maker", "2. Photo se Video Maker", "3. Hindi/English Voice Maker", "4. AI Photo Editor"])
+tool = st.sidebar.selectbox("Apna AI Tool Chunein:", ["1. Kuldeep AI Chat (Gemini Style)", "2. Auto-AI Video Maker", "3. AI Image Generator", "4. Hindi/English Voice Maker", "5. AI Photo Editor"])
+
+def ask_free_ai(prompt):
+    try:
+        url = f"https://pollinations.ai{urllib.parse.quote(prompt)}"
+        res = requests.get(url, timeout=20)
+        if res.status_code == 200:
+            return res.text
+        return "Server abhi vyast hai, kripya dobara koshish karein."
+    except Exception as e:
+        return "Network error aaya hai, kripya dobara try karein."
 
 def add_caption(img, text):
-    d = ImageDraw.Draw(img)
-    d.rectangle([0, 620, 1280, 720], fill=(0, 0, 0))
-    d.text((50, 655), text[:95], fill=(255, 255, 0))
+    draw = ImageDraw.Draw(img)
+    draw.rectangle([(40, 610), (1240, 690)], fill=(0, 0, 0))
+    draw.text((60, 640), text[:85], fill=(255, 255, 0))
     return img
 
-if tool == "1. Auto-AI Video Maker":
-    st.subheader("Auto-AI Video + Subtitles + Music")
-    title = st.text_input("Video Title:", "Leo_Pro_Story")
+if tool == "1. Kuldeep AI Chat (Gemini Style)":
+    st.subheader("Kuldeep AI se Kuch Bhi Puchein ya Kahani Likhwaiye")
+    if "messages" not in st.session_state:
+        st.session_state.messages = []
+    for msg in st.session_state.messages:
+        with st.chat_message(msg["role"]):
+            st.markdown(msg["content"])
+    user_q = st.chat_input("Yahan apna sawal likhein (Jaise: Hindi mein ek kahani likho)...")
+    if user_q:
+        st.session_state.messages.append({"role": "user", "content": user_q})
+        with st.chat_message("user"):
+            st.markdown(user_q)
+        with st.chat_message("assistant"):
+            with st.spinner("Kuldeep AI soch raha hai..."):
+                ans = ask_free_ai(user_q)
+                st.markdown(ans)
+                st.session_state.messages.append({"role": "assistant", "content": ans})
+
+elif tool == "2. Auto-AI Video Maker":
+    st.subheader("AI se Kahani Likhwakar Video Banayein")
+    topic = st.text_input("Kahani ka Topic likhein (Optional - AI khud script likhega):", "A brave lion and a little mouse in Hindi")
+    if st.button("AI se Script Likhwaiye"):
+        with st.spinner("AI script likh raha hai..."):
+            st.session_state.auto_script = ask_free_ai(f"Write a very short 4-sentence story about {topic}. End every sentence with a full stop.")
+    default_script = st.session_state.get("auto_script", "The sun is shining as Leo walks in the park. He finds a cute little brown puppy.")
+    title = st.text_input("Video Title:", "Leo_Story")
     bhasha = st.selectbox("Bhasha:", ["hi", "en"])
     style = st.selectbox("Image Style:", ["3D Pixar cartoon style", "realistic cinematic photo", "anime art"])
-    kahani = st.text_area("Kahani likhein (har line ke baad . lagayein):", "The sun is shining as Leo walks in the park. He finds a cute little brown puppy.")
-    bg_music = st.file_uploader("Background Music chunein (Optional .mp3):", type=["mp3"])
+    kahani = st.text_area("Kahani (har line ke baad . lagayein):", default_script)
+    captions_on = st.checkbox("Video par Subtitles dikhayein", value=True)
     if st.button("Pro AI Video Banayein"):
-        with st.spinner("Subtitles aur AI tasveeron ke saath video ban raha hai..."):
+        with st.spinner("Video ban raha hai..."):
             scenes = [s.strip() for s in kahani.split(".") if s.strip()]
             clips = []
             rang = [(25, 45, 90), (80, 20, 50), (20, 80, 60), (90, 60, 20)]
@@ -41,36 +74,8 @@ if tool == "1. Auto-AI Video Maker":
                         raise Exception("Fallback")
                 except:
                     img = Image.new("RGB", (1280, 720), color=rang[i % len(rang)])
-                img = add_caption(img, line)
-                img.save(imf)
-                aud = AudioFileClip(af)
-                clips.append(ImageClip(imf).with_duration(aud.duration).with_audio(aud))
-            fv = concatenate_videoclips(clips)
-            if bg_music:
-                open("bg.mp3", "wb").write(bg_music.read())
-                bgm = AudioFileClip("bg.mp3").with_volume_scaled(0.15).with_duration(fv.duration)
-                fv = fv.with_audio(CompositeAudioClip([fv.audio, bgm]))
-            fn = "".join(c for c in title if c.isalnum() or c == " ").replace(" ", "_") + ".mp4"
-            fv.write_videofile(fn, fps=24)
-            st.success("Pro Video Taiyar Hai!")
-            st.video(fn)
-            st.download_button("Download Video", open(fn, "rb"), file_name=fn)
-
-elif tool == "2. Photo se Video Maker":
-    st.subheader("Apni Photos + Subtitles se Video Banayein")
-    title = st.text_input("Title:", "Mera_Photo_Video")
-    bhasha = st.selectbox("Awaaz ki Bhasha:", ["hi", "en"])
-    kahani = st.text_area("Script likhein (har line ke baad . lagayein):", "Namaste dosto. Yeh mera naya video hai.")
-    photos = st.file_uploader("Photos chunein:", type=["jpg", "png", "jpeg"], accept_multiple_files=True)
-    if st.button("Photo Video Banayein") and photos:
-        with st.spinner("Video ban raha hai..."):
-            scenes = [s.strip() for s in kahani.split(".") if s.strip()]
-            clips = []
-            for i, line in enumerate(scenes):
-                af, imf = f"pa_{i}.mp3", f"pi_{i}.png"
-                gTTS(line, lang=bhasha).save(af)
-                img = Image.open(photos[i % len(photos)]).convert("RGB").resize((1280, 720))
-                img = add_caption(img, line)
+                if captions_on:
+                    img = add_caption(img, line)
                 img.save(imf)
                 aud = AudioFileClip(af)
                 clips.append(ImageClip(imf).with_duration(aud.duration).with_audio(aud))
@@ -78,9 +83,19 @@ elif tool == "2. Photo se Video Maker":
             fn = "".join(c for c in title if c.isalnum() or c == " ").replace(" ", "_") + ".mp4"
             fv.write_videofile(fn, fps=24)
             st.video(fn)
-            st.download_button("Download Video", open(fn, "rb"), file_name=fn)
+            st.download_button("Download Video (.mp4)", open(fn, "rb"), file_name=fn)
 
-elif tool == "3. Hindi/English Voice Maker":
+elif tool == "3. AI Image Generator":
+    st.subheader("Likhe hue Text se AI Photo Banayein")
+    img_prompt = st.text_input("Kaisi photo banani hai? (English mein likhein):", "A futuristic Indian city at night with flying cars, 3D render")
+    if st.button("AI Photo Banayein"):
+        with st.spinner("AI photo bana raha hai..."):
+            url = f"https://pollinations.ai{urllib.parse.quote(img_prompt)}?width=1024&height=1024&nologo=true"
+            open("gen_img.jpg", "wb").write(requests.get(url).content)
+            st.image("gen_img.jpg", caption=img_prompt, width=500)
+            st.download_button("Download Photo", open("gen_img.jpg", "rb"), file_name="kuldeep_ai_art.jpg")
+
+elif tool == "4. Hindi/English Voice Maker":
     st.subheader("Text se AI Awaaz Banayein")
     txt = st.text_area("Bolne ke liye text likhein:", "Namaste Kuldeep, aapka AI Studio shandar kaam kar raha hai!")
     lang = st.selectbox("Language:", ["hi", "en"])
@@ -89,16 +104,16 @@ elif tool == "3. Hindi/English Voice Maker":
         st.audio("voice_out.mp3")
         st.download_button("Download Audio (.mp3)", open("voice_out.mp3", "rb"), file_name="kuldeep_voice.mp3")
 
-elif tool == "4. AI Photo Editor":
-    st.subheader("Apni Photo ko Edit Karein")
-    up_img = st.file_uploader("Photo upload karein:", type=["jpg", "png", "jpeg"])
-    effect = st.selectbox("Filter chunein:", ["Black and White", "Blur Effect", "Extra Sharp", "High Brightness"])
+elif tool == "5. AI Photo Editor":
+    st.subheader("Photo Filter aur Watermark Tool")
+    up_img = st.file_uploader("Koi bhi Photo chunein:", type=["jpg", "png", "jpeg"])
+    effect = st.selectbox("Effect Chunein:", ["Original + Text", "Black & White", "Blur Effect"])
+    w_text = st.text_input("Photo par likhne ke liye text:", "Kuldeep AI Tools")
     if up_img:
         im = Image.open(up_img).convert("RGB")
-        if effect == "Black and White": im = im.convert("L")
+        if effect == "Black & White": im = ImageOps.grayscale(im).convert("RGB")
         elif effect == "Blur Effect": im = im.filter(ImageFilter.GaussianBlur(5))
-        elif effect == "Extra Sharp": im = im.filter(ImageFilter.SHARPEN)
-        elif effect == "High Brightness": im = ImageEnhance.Brightness(im).enhance(1.5)
+        if w_text: ImageDraw.Draw(im).text((30, 30), w_text, fill=(255, 255, 0))
+        st.image(im, caption="Edited Photo", width=500)
         im.save("edited_photo.png")
-        st.image("edited_photo.png", caption="Edited Photo")
-        st.download_button("Download Photo", open("edited_photo.png", "rb"), file_name="kuldeep_edited.png")
+        st.download_button("Download Edited Photo", open("edited_photo.png", "rb"), file_name="kuldeep_edited.png")
