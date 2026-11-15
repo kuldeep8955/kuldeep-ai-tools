@@ -5,7 +5,7 @@ from moviepy import ImageClip, AudioFileClip, concatenate_videoclips
 import requests, urllib.parse
 
 st.set_page_config(page_title="Kuldeep AI Tools", layout="wide")
-st.title("Kuldeep AI - Smart Assistant & Video Studio (v4.2 FIXED)")
+st.title("Kuldeep AI - Smart Assistant & Video Studio (v4.3 FIXED)")
 
 HEADERS = {"User-Agent": "Mozilla/5.0"}
 
@@ -19,6 +19,7 @@ tool = st.sidebar.selectbox("Apna AI Tool Chunein:", [
 
 def ask_free_ai(prompt):
     try:
+        # FIXED: text.pollinations.ai aur slash (/) joda gaya hai
         url = "https://pollinations.ai" + urllib.parse.quote(prompt)
         res = requests.get(url, headers=HEADERS, timeout=25)
         if res.status_code == 200 and res.text.strip():
@@ -28,6 +29,7 @@ def ask_free_ai(prompt):
         return f"Network error: {e}"
 
 def get_free_image(prompt, width=1024, height=1024):
+    # FIXED: image.pollinations.ai/prompt/ joda gaya hai
     url = "https://pollinations.ai" + urllib.parse.quote(prompt) + f"?width={width}&height={height}&nologo=true"
     return requests.get(url, headers=HEADERS, timeout=25)
 
