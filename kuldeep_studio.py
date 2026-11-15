@@ -25,7 +25,7 @@ from google.genai import types
 def ask_free_ai(prompt):
     try:
         api_key = st.secrets["GEMINI_API_KEY"]
-        client = genai.Client(api_key=api_key,
+        client = genai.Client(api_key=api_key)
         response = client.models.generate_content(
             model="gemini-3.8-flash",
             contents=prompt,
