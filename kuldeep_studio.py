@@ -53,7 +53,14 @@ if tool == "1. Kuldeep AI Chat (Gemini Style)":
     if "messages" not in st.session_state:
         st.session_state.messages = []
     for msg in st.session_state.messages:
-    with st.chat_message("assistant"):
+        with st.chat_message(msg["role"]):
+            st.markdown(msg["content"])
+    user_q = st.chat_input("Yahan apna sawal likhein...")
+    if user_q:
+        st.session_state.messages.append({"role": "user", "content": user_q})
+        with st.chat_message("user"):
+            st.markdown(user_q)
+        with st.chat_message("assistant"):
             try:
                 api_key = st.secrets["GEMINI_API_KEY"]
                 client = genai.Client(api_key=api_key, http_options={'timeout': 25})
@@ -71,15 +78,6 @@ if tool == "1. Kuldeep AI Chat (Gemini Style)":
                 st.session_state.messages.append({"role": "assistant", "content": ans})
             except Exception as e:
                 st.error(f"Error: {e}")
-    if user_q:
-        st.session_state.messages.append({"role": "user", "content": user_q})
-        with st.chat_message("user"):
-            st.markdown(user_q)
-        with st.chat_message("assistant"):
-            with st.spinner("Gemini soch raha hai..."):
-                ans = ask_free_ai(user_q)
-                st.markdown(ans)
-                st.session_state.messages.append({"role": "assistant", "content": ans})
 
 elif tool == "2. Auto-AI Video Maker":
     st.subheader("AI se Kahani Likhwakar Video Banayein")
