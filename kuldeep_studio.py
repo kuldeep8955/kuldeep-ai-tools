@@ -62,13 +62,13 @@ if tool == "1. Kuldeep AI Chat (Gemini Style)":
         with st.chat_message("user"):
             st.markdown(user_q)
 
-        with st.chat_message("assistant"):
+                with st.chat_message("assistant"):
             try:
                 api_key = st.secrets["GEMINI_API_KEY"]
                 client = genai.Client(api_key=api_key)
 
                 def stream_jawab():
-                    models_to_try = ["gemini-2.5-flash", "gemini-2.5-flash-lite"]
+                    models_to_try = ["gemini-3.5-flash-lite", "gemini-2.5-flash", "gemini-3.8-flash"]
                     last_error = None
                     for m in models_to_try:
                         try:
