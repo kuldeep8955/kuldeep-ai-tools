@@ -63,8 +63,8 @@ if tool == "1. Kuldeep AI Chat (Gemini Style)":
         with st.chat_message("assistant"):
             try:
                 api_key = st.secrets["GEMINI_API_KEY"]
-                       with st.chat_message("assistant"):
-            with st.spinner("Kuldeep AI soch raha hai..."):
+                with st.chat_message("assistant"):
+                with st.spinner("Kuldeep AI soch raha hai..."):
                 try:
                     api_key = st.secrets["GEMINI_API_KEY"]
                     url = f"https://googleapis.com{api_key}"
