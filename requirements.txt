@@ -3,3 +3,4 @@ gTTS
 moviepy
 Pillow
 requests
+google-genai
