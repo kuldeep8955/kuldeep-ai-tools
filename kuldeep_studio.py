@@ -19,7 +19,7 @@ tool = st.sidebar.selectbox("Apna AI Tool Chunein:", [
 
 def ask_free_ai(prompt):
     try:
-       url = "https://text.pollinations.ai/" + urllib.parse.quote(prompt)
+        url = "https://text.pollinations.ai/" + urllib.parse.quote(prompt)
         res = requests.get(url, headers=HEADERS, timeout=30)
         if res.status_code == 200 and res.text.strip():
             return res.text
