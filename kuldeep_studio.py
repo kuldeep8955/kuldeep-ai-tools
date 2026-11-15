@@ -19,11 +19,11 @@ tool = st.sidebar.selectbox("Apna AI Tool Chunein:", [
 ])
 
 def ask_free_ai(prompt):
-    models_to_try = ["gemini-3.8-flash", "gemini-3.8-flash-lite", "gemini-3.5-flash"]
     try:
         api_key = st.secrets["GEMINI_API_KEY"]
-        client = genai.Client(api_key=api_key)
-        for model_name in models_to_try:
+        client = genai.Client(api_key=api_key, http_options={'timeout': 10})
+        # Sabse tez model pehle chunein
+        for model_name in ["gemini-3.8-flash-lite", "gemini-3.8-flash"]:
             try:
                 response = client.models.generate_content(
                     model=model_name,
@@ -31,22 +31,12 @@ def ask_free_ai(prompt):
                 )
                 if response.text:
                     return response.text
-            except Exception as e:
-                time.sleep(1)
+            except Exception:
                 continue
-    except Exception:
-        pass
+    except Exception as e:
+        return f"Error: {e}"
 
-    # Agar teeno Gemini models vyast hon, to Pollinations backup
-    try:
-        url = "https://pollinations.ai" + urllib.parse.quote(prompt)
-        res = requests.get(url, headers=HEADERS, timeout=30)
-        if res.status_code == 200 and res.text.strip():
-            return res.text
-    except Exception:
-        pass
-
-    return "Abhi sabhi AI servers par bheed hai. Kripya 10 second ruk kar dobara 'Send' dabayein."
+    return "Server abhi vyast hai, kripya 5 second baad dobara puchein."
 
 def get_free_image(prompt, width=768, height=768):
     url = "https://image.pollinations.ai/prompt/" + urllib.parse.quote(prompt) + f"?width={width}&height={height}&nologo=true"
