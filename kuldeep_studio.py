@@ -56,13 +56,13 @@ if tool == "1. Kuldeep AI Chat (Gemini Style)":
         with st.chat_message(msg["role"]):
             st.markdown(msg["content"])
 
-    user_q = st.chat_input("Yahan apna sawal likhein...")
+       user_q = st.chat_input("Yahan apna sawal likhein...")
     if user_q:
         st.session_state.messages.append({"role": "user", "content": user_q})
         with st.chat_message("user"):
             st.markdown(user_q)
 
-               with st.chat_message("assistant"):
+        with st.chat_message("assistant"):
             try:
                 api_key = st.secrets["GEMINI_API_KEY"]
                 client = genai.Client(api_key=api_key)
