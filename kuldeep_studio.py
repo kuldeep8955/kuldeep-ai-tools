@@ -2,10 +2,10 @@ import streamlit as st
 from gtts import gTTS
 from PIL import Image, ImageDraw, ImageFilter, ImageOps
 from moviepy import ImageClip, AudioFileClip, concatenate_videoclips
-import requests, urllib.parse
+import requests, urllib.parse, time
 
 st.set_page_config(page_title="Kuldeep AI Tools", layout="wide")
-st.title("Kuldeep AI - Smart Assistant & Video Studio (v4.3 FIXED)")
+st.title("Kuldeep AI - Smart Assistant & Video Studio (v4.7 FINAL)")
 
 HEADERS = {"User-Agent": "Mozilla/5.0"}
 
@@ -19,19 +19,19 @@ tool = st.sidebar.selectbox("Apna AI Tool Chunein:", [
 
 def ask_free_ai(prompt):
     try:
-        # FIXED: text.pollinations.ai aur slash (/) joda gaya hai
         url = "https://pollinations.ai" + urllib.parse.quote(prompt)
-        res = requests.get(url, headers=HEADERS, timeout=25)
+        res = requests.get(url, headers=HEADERS, timeout=30)
         if res.status_code == 200 and res.text.strip():
             return res.text
-        return "Server abhi vyast hai, kripya dobara koshish karein."
+        elif res.status_code == 402:
+            return "Free limit poori ho gayi hai. Kripya 30 second ruk kar dobara koshish karein."
+        return "Server abhi vyast hai, kripya thodi der baad koshish karein."
     except Exception as e:
         return f"Network error: {e}"
 
-def get_free_image(prompt, width=1024, height=1024):
-    # FIXED: image.pollinations.ai/prompt/ joda gaya hai
+def get_free_image(prompt, width=768, height=768):
     url = "https://pollinations.ai" + urllib.parse.quote(prompt) + f"?width={width}&height={height}&nologo=true"
-    return requests.get(url, headers=HEADERS, timeout=25)
+    return requests.get(url, headers=HEADERS, timeout=35)
 
 def add_caption(img, text):
     draw = ImageDraw.Draw(img)
@@ -75,16 +75,18 @@ elif tool == "2. Auto-AI Video Maker":
     kahani = st.text_area("Kahani (har line ke baad . lagayein):", default_script)
     captions_on = st.checkbox("Video par Subtitles dikhayein", value=True)
     if st.button("Pro AI Video Banayein"):
-        with st.spinner("Video ban raha hai..."):
+        with st.spinner("Video ban raha hai (har scene ke liye AI photo banayi ja rahi hai)..."):
             scenes = [s.strip() for s in kahani.split(".") if s.strip()]
             clips = []
             rang = [(25, 45, 90), (80, 20, 50), (20, 80, 60), (90, 60, 20)]
             for i, line in enumerate(scenes):
+                if i > 0:
+                    time.sleep(5)
                 af, imf = f"a_{i}.mp3", f"i_{i}.jpg"
                 gTTS(line, lang=bhasha).save(af)
                 try:
                     clean_p = "".join(c for c in line if c.isalnum() or c == " ")[:80]
-                    resp = get_free_image(f"{clean_p}, {style}", width=1280, height=720)
+                    resp = get_free_image(f"{clean_p}, {style}", width=768, height=512)
                     if resp.status_code == 200 and len(resp.content) > 1000:
                         with open(imf, "wb") as f:
                             f.write(resp.content)
@@ -111,13 +113,15 @@ elif tool == "3. AI Image Generator":
     if st.button("AI Photo Banayein"):
         with st.spinner("AI photo bana raha hai..."):
             try:
-                resp = get_free_image(img_prompt, width=1024, height=1024)
+                resp = get_free_image(img_prompt, width=768, height=768)
                 if resp.status_code == 200 and len(resp.content) > 1000:
                     with open("gen_img.jpg", "wb") as f:
                         f.write(resp.content)
                     st.image("gen_img.jpg", caption=img_prompt, width=500)
                     with open("gen_img.jpg", "rb") as f:
                         st.download_button("Download Photo", f, file_name="kuldeep_ai_art.jpg")
+                elif resp.status_code == 402:
+                    st.warning("Free limit ke karan kripya 45 second ruk kar dobara koshish karein.")
                 else:
                     st.error("Photo generate nahi ho payi, dobara try karein.")
             except Exception as e:
