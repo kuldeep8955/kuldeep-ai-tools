@@ -63,24 +63,25 @@ if tool == "1. Kuldeep AI Chat (Gemini Style)":
             st.markdown(user_q)
 
         with st.chat_message("assistant"):
-            with st.spinner("Kuldeep AI soch raha hai..."):
-                try:
-                    api_key = st.secrets["GEMINI_API_KEY"]
-                    url = f"https://googleapis.com{api_key}"
-                    payload = {
-                        "contents": [{"parts": [{"text": user_q}]}],
-                        "generationConfig": {"thinkingConfig": {"thinkingBudget": 0}}
-                    }
-                    res = requests.post(url, json=payload, timeout=15)
-                    data = res.json()
-                    if "candidates" in data:
-                        ans = data["candidates"][0]["content"]["parts"][0]["text"]
-                    else:
-                        ans = f"Server Message: {data}"
-                    st.markdown(ans)
-                    st.session_state.messages.append({"role": "assistant", "content": ans})
-                except Exception as e:
-                    st.error(f"Error: {e}")
+            try:
+                api_key = st.secrets["GEMINI_API_KEY"]
+                client = genai.Client(api_key=api_key)
+
+                def stream_jawab():
+                    for chunk in client.models.generate_content_stream(
+                        model="gemini-3.8-flash",
+                        contents=user_q,
+                        config=types.GenerateContentConfig(
+                            thinking_config=types.ThinkingConfig(thinking_budget=0)
+                        )
+                    ):
+                        if chunk.text:
+                            yield chunk.text
+
+                ans = st.write_stream(stream_jawab())
+                st.session_state.messages.append({"role": "assistant", "content": ans})
+            except Exception as e:
+                st.error(f"Error: {e}")
 
                 def stream_jawab():
                     for chunk in client.models.generate_content_stream(
