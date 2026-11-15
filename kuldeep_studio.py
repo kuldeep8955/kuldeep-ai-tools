@@ -22,15 +22,28 @@ def ask_free_ai(prompt):
     try:
         api_key = st.secrets["GEMINI_API_KEY"]
         client = genai.Client(api_key=api_key)
-        response = client.models.generate_content(
-            model="gemini-3.8-flash",
-            contents=prompt
-        )
-        return response.text
-    except KeyError:
-        return "Streamlit Settings > Secrets mein apni GEMINI_API_KEY add karein!"
-    except Exception as e:
-        return f"Gemini Error: {e}"
+        for koshish in range(2):
+            try:
+                response = client.models.generate_content(
+                    model="gemini-3.8-flash",
+                    contents=prompt
+                )
+                return response.text
+            except Exception as e:
+                if "503" in str(e) and koshish == 0:
+                    time.sleep(2)
+                    continue
+                raise e
+    except Exception:
+        # Agar Gemini par zyada bheed ho, to backup AI se jawab layein
+        try:
+            url = "https://pollinations.ai" + urllib.parse.quote(prompt)
+            res = requests.get(url, headers=HEADERS, timeout=30)
+            if res.status_code == 200 and res.text.strip():
+                return res.text
+        except Exception:
+            pass
+        return "Server par abhi bahut bheed hai. Kripya 5 second baad dobara 'Send' dabayein."
 
 def get_free_image(prompt, width=768, height=768):
     url = "https://image.pollinations.ai/prompt/" + urllib.parse.quote(prompt) + f"?width={width}&height={height}&nologo=true"
