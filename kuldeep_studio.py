@@ -62,10 +62,35 @@ if tool == "1. Kuldeep AI Chat (Gemini Style)":
         with st.chat_message("user"):
             st.markdown(user_q)
 
-                with st.chat_message("assistant"):
+        with st.chat_message("assistant"):
             try:
                 api_key = st.secrets["GEMINI_API_KEY"]
                 client = genai.Client(api_key=api_key)
+
+                def stream_jawab():
+                    models_to_try = ["gemini-3.5-flash-lite", "gemini-2.5-flash", "gemini-3.8-flash"]
+                    last_error = None
+                    for m in models_to_try:
+                        try:
+                            for chunk in client.models.generate_content_stream(
+                                model=m,
+                                contents=user_q,
+                                config=types.GenerateContentConfig(
+                                    thinking_config=types.ThinkingConfig(thinking_budget=0)
+                                )
+                            ):
+                                if chunk.text:
+                                    yield chunk.text
+                            return
+                        except Exception as err:
+                            last_error = err
+                            time.sleep(1)
+                    raise last_error
+
+                ans = st.write_stream(stream_jawab())
+                st.session_state.messages.append({"role": "assistant", "content": ans})
+            except Exception as e:
+                st.error(f"Server abhi vyast hai, kripya thodi der baad try karein. ({e})")
 
                 def stream_jawab():
                     models_to_try = ["gemini-3.5-flash-lite", "gemini-2.5-flash", "gemini-3.8-flash"]
