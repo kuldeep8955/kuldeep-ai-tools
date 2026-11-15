@@ -18,19 +18,24 @@ tool = st.sidebar.selectbox("Apna AI Tool Chunein:", [
     "5. AI Photo Editor"
 ])
 
+from google.genai import types
+
 def ask_free_ai(prompt):
-    # Sirf 5 second tak hi intezar karega
     try:
         api_key = st.secrets["GEMINI_API_KEY"]
-        client = genai.Client(api_key=api_key, http_options={'timeout': 5})
+        client = genai.Client(api_key=api_key, http_options={'timeout': 12})
         response = client.models.generate_content(
             model="gemini-3.8-flash",
-            contents=prompt
+            contents=prompt,
+            config=types.GenerateContentConfig(
+                system_instruction="Hamesha seedha, saral aur sankshipt (3 se 4 line mein) jawab dein taaki jawab turant mile.",
+                max_output_tokens=300
+            )
         )
         if response.text:
             return response.text
     except Exception as e:
-        return f"Gemini Error (5s): {e}"
+        return f"Gemini Error: {e}"
 
     return "Koi jawab nahi mila."
 
