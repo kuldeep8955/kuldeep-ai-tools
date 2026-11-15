@@ -65,7 +65,7 @@ if tool == "1. Kuldeep AI Chat (Gemini Style)":
 
         with st.chat_message("assistant"):
             with st.spinner("Kuldeep AI soch raha hai..."):
-                try:
+                               try:
                     api_key = st.secrets["GEMINI_API_KEY"]
                     url = f"https://googleapis.com{api_key}"
                     payload = {
@@ -81,7 +81,8 @@ if tool == "1. Kuldeep AI Chat (Gemini Style)":
                     st.markdown(ans)
                     st.session_state.messages.append({"role": "assistant", "content": ans})
                 except Exception as e:
-                    st.error(f"Error: {e}") 
+                    st.error(f"Error: {e}")
+
                 def stream_jawab():
                     for chunk in client.models.generate_content_stream(
                         model="gemini-3.8-flash",
