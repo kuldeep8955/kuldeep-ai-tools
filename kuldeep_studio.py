@@ -47,7 +47,6 @@ def add_caption(img, text):
     draw.rectangle([(40, 610), (1240, 690)], fill=(0, 0, 0))
     draw.text((60, 640), text[:85], fill=(255, 255, 0))
     return img
-
 if tool == "1. Kuldeep AI Chat (Gemini Style)":
     st.subheader("Kuldeep AI se Kuch Bhi Puchein ya Kahani Likhwaiye")
     if "messages" not in st.session_state:
@@ -65,7 +64,7 @@ if tool == "1. Kuldeep AI Chat (Gemini Style)":
 
         with st.chat_message("assistant"):
             with st.spinner("Kuldeep AI soch raha hai..."):
-                               try:
+                try:
                     api_key = st.secrets["GEMINI_API_KEY"]
                     url = f"https://googleapis.com{api_key}"
                     payload = {
