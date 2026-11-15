@@ -53,7 +53,7 @@ if tool == "1. Kuldeep AI Chat (Gemini Style)":
     if "messages" not in st.session_state:
         st.session_state.messages = []
     for msg in st.session_state.messages:
-        with         with st.chat_message("assistant"):
+    with st.chat_message("assistant"):
             try:
                 api_key = st.secrets["GEMINI_API_KEY"]
                 client = genai.Client(api_key=api_key, http_options={'timeout': 25})
