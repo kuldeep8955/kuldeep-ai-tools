@@ -2,10 +2,11 @@ import streamlit as st
 from gtts import gTTS
 from PIL import Image, ImageDraw, ImageFilter, ImageOps
 from moviepy import ImageClip, AudioFileClip, concatenate_videoclips
+from google import genai
 import requests, urllib.parse, time
 
 st.set_page_config(page_title="Kuldeep AI Tools", layout="wide")
-st.title("Kuldeep AI - Smart Assistant & Video Studio (v4.7 FINAL)")
+st.title("Kuldeep AI - Gemini Powered Studio (v5.1 SAFE)")
 
 HEADERS = {"User-Agent": "Mozilla/5.0"}
 
@@ -19,15 +20,17 @@ tool = st.sidebar.selectbox("Apna AI Tool Chunein:", [
 
 def ask_free_ai(prompt):
     try:
-        url = "https://text.pollinations.ai/" + urllib.parse.quote(prompt)
-        res = requests.get(url, headers=HEADERS, timeout=30)
-        if res.status_code == 200 and res.text.strip():
-            return res.text
-        elif res.status_code == 402:
-            return "Free limit poori ho gayi hai. Kripya 30 second ruk kar dobara koshish karein."
-        return "Server abhi vyast hai, kripya thodi der baad koshish karein."
+        api_key = st.secrets["GEMINI_API_KEY"]
+        client = genai.Client(api_key=api_key)
+        response = client.models.generate_content(
+            model="gemini-2.5-flash",
+            contents=prompt
+        )
+        return response.text
+    except KeyError:
+        return "Streamlit Settings > Secrets mein apni GEMINI_API_KEY add karein!"
     except Exception as e:
-        return f"Network error: {e}"
+        return f"Gemini Error: {e}"
 
 def get_free_image(prompt, width=768, height=768):
     url = "https://image.pollinations.ai/prompt/" + urllib.parse.quote(prompt) + f"?width={width}&height={height}&nologo=true"
@@ -52,7 +55,7 @@ if tool == "1. Kuldeep AI Chat (Gemini Style)":
         with st.chat_message("user"):
             st.markdown(user_q)
         with st.chat_message("assistant"):
-            with st.spinner("Kuldeep AI soch raha hai..."):
+            with st.spinner("Gemini soch raha hai..."):
                 ans = ask_free_ai(user_q)
                 st.markdown(ans)
                 st.session_state.messages.append({"role": "assistant", "content": ans})
@@ -61,9 +64,9 @@ elif tool == "2. Auto-AI Video Maker":
     st.subheader("AI se Kahani Likhwakar Video Banayein")
     topic = st.text_input("Kahani ka Topic likhein:", "A brave lion and a little mouse in Hindi")
     if st.button("AI se Script Likhwaiye"):
-        with st.spinner("AI script likh raha hai..."):
+        with st.spinner("Gemini script likh raha hai..."):
             st.session_state.auto_script = ask_free_ai(
-                f"Write a short 4-sentence story about {topic}. End every sentence with a full stop."
+                f"Write a short 4-sentence story about {topic}. End every sentence with a full stop. Do not use bullet points."
             )
     default_script = st.session_state.get(
         "auto_script",
