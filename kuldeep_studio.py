@@ -19,7 +19,7 @@ tool = st.sidebar.selectbox("Apna AI Tool Chunein:", [
 
 def ask_free_ai(prompt):
     try:
-        url = "https://pollinations.ai" + urllib.parse.quote(prompt)
+       url = "https://text.pollinations.ai/" + urllib.parse.quote(prompt)
         res = requests.get(url, headers=HEADERS, timeout=30)
         if res.status_code == 200 and res.text.strip():
             return res.text
@@ -30,7 +30,7 @@ def ask_free_ai(prompt):
         return f"Network error: {e}"
 
 def get_free_image(prompt, width=768, height=768):
-    url = "https://pollinations.ai" + urllib.parse.quote(prompt) + f"?width={width}&height={height}&nologo=true"
+url = "https://image.pollinations.ai/prompt/" + urllib.parse.quote(prompt) + f"?width={width}&height={height}&nologo=true"
     return requests.get(url, headers=HEADERS, timeout=35)
 
 def add_caption(img, text):
