@@ -20,24 +20,23 @@ tool = st.sidebar.selectbox("Apna AI Tool Chunein:", [
 
 from google.genai import types
 
+from google.genai import types
+
 def ask_free_ai(prompt):
     try:
         api_key = st.secrets["GEMINI_API_KEY"]
-        client = genai.Client(api_key=api_key, http_options={'timeout': 12})
+        client = genai.Client(api_key=api_key, http_options={'timeout': 25})
         response = client.models.generate_content(
             model="gemini-3.8-flash",
             contents=prompt,
             config=types.GenerateContentConfig(
-                system_instruction="Hamesha seedha, saral aur sankshipt (3 se 4 line mein) jawab dein taaki jawab turant mile.",
-                max_output_tokens=300
+                thinking_config=types.ThinkingConfig(thinking_budget=0),
+                max_output_tokens=400
             )
         )
-        if response.text:
-            return response.text
+        return response.text
     except Exception as e:
         return f"Gemini Error: {e}"
-
-    return "Koi jawab nahi mila."
 
 def get_free_image(prompt, width=768, height=768):
     url = "https://image.pollinations.ai/prompt/" + urllib.parse.quote(prompt) + f"?width={width}&height={height}&nologo=true"
@@ -54,9 +53,24 @@ if tool == "1. Kuldeep AI Chat (Gemini Style)":
     if "messages" not in st.session_state:
         st.session_state.messages = []
     for msg in st.session_state.messages:
-        with st.chat_message(msg["role"]):
-            st.markdown(msg["content"])
-    user_q = st.chat_input("Yahan apna sawal likhein...")
+        with         with st.chat_message("assistant"):
+            try:
+                api_key = st.secrets["GEMINI_API_KEY"]
+                client = genai.Client(api_key=api_key, http_options={'timeout': 25})
+                def stream_jawab():
+                    for chunk in client.models.generate_content_stream(
+                        model="gemini-3.8-flash",
+                        contents=user_q,
+                        config=types.GenerateContentConfig(
+                            thinking_config=types.ThinkingConfig(thinking_budget=0)
+                        )
+                    ):
+                        if chunk.text:
+                            yield chunk.text
+                ans = st.write_stream(stream_jawab())
+                st.session_state.messages.append({"role": "assistant", "content": ans})
+            except Exception as e:
+                st.error(f"Error: {e}")
     if user_q:
         st.session_state.messages.append({"role": "user", "content": user_q})
         with st.chat_message("user"):
