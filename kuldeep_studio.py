@@ -23,7 +23,7 @@ def ask_free_ai(prompt):
         api_key = st.secrets["GEMINI_API_KEY"]
         client = genai.Client(api_key=api_key)
         response = client.models.generate_content(
-            model="gemini-2.5-flash",
+            model="gemini-3.8-flash",
             contents=prompt
         )
         return response.text
