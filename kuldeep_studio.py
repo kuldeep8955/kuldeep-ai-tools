@@ -52,22 +52,22 @@ if tool == "1. Kuldeep AI Chat (Gemini Style)":
     st.subheader("Kuldeep AI se Kuch Bhi Puchein ya Kahani Likhwaiye")
     if "messages" not in st.session_state:
         st.session_state.messages = []
+
     for msg in st.session_state.messages:
         with st.chat_message(msg["role"]):
             st.markdown(msg["content"])
+
     user_q = st.chat_input("Yahan apna sawal likhein...")
     if user_q:
         st.session_state.messages.append({"role": "user", "content": user_q})
         with st.chat_message("user"):
-        st.markdown(user_q)
+            st.markdown(user_q)
+
         with st.chat_message("assistant"):
-        try:
-        api_key = st.secrets["GEMINI_API_KEY"]
-        with st.chat_message("assistant"):
-        with st.spinner("Kuldeep AI soch raha hai..."):
-        try:
-        api_key = st.secrets["GEMINI_API_KEY"]
-        url = f"https://googleapis.com{api_key}"
+            with st.spinner("Kuldeep AI soch raha hai..."):
+                try:
+                    api_key = st.secrets["GEMINI_API_KEY"]
+                    url = f"https://googleapis.com{api_key}"
                     payload = {
                         "contents": [{"parts": [{"text": user_q}]}],
                         "generationConfig": {"thinkingConfig": {"thinkingBudget": 0}}
@@ -81,7 +81,7 @@ if tool == "1. Kuldeep AI Chat (Gemini Style)":
                     st.markdown(ans)
                     st.session_state.messages.append({"role": "assistant", "content": ans})
                 except Exception as e:
-                    st.error(f"Error: {e}")
+                    st.error(f"Error: {e}") 
                 def stream_jawab():
                     for chunk in client.models.generate_content_stream(
                         model="gemini-3.8-flash",
