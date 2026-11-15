@@ -19,29 +19,29 @@ tool = st.sidebar.selectbox("Apna AI Tool Chunein:", [
 ])
 
 def ask_free_ai(prompt):
-    # 1. Gemini Lite se 4 second mein tez jawab layein
+    err = ""
     try:
         api_key = st.secrets["GEMINI_API_KEY"]
-        client = genai.Client(api_key=api_key, http_options={'timeout': 4})
+        client = genai.Client(api_key=api_key)
         response = client.models.generate_content(
-            model="gemini-3.8-flash-lite",
+            model="gemini-3.8-flash",
             contents=prompt
         )
         if response.text:
             return response.text
-    except Exception:
-        pass
+    except Exception as e:
+        err = str(e)
 
-    # 2. Agar Gemini busy ho to turant Pollinations se jawab layein
+    # Agar Gemini fail ho to Pollinations backup
     try:
-        url = "https://text.pollinations.ai/" + urllib.parse.quote(prompt)
-        res = requests.get(url, headers=HEADERS, timeout=8)
+        url = "https://pollinations.ai" + urllib.parse.quote(prompt)
+        res = requests.get(url, headers=HEADERS, timeout=15)
         if res.status_code == 200 and res.text.strip():
             return res.text
     except Exception:
         pass
 
-    return "Server abhi vyast hai, kripya dobara puchein."
+    return f"Gemini Error: {err}"
 
 def get_free_image(prompt, width=768, height=768):
     url = "https://image.pollinations.ai/prompt/" + urllib.parse.quote(prompt) + f"?width={width}&height={height}&nologo=true"
